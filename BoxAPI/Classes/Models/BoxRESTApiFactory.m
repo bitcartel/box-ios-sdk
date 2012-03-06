@@ -20,7 +20,7 @@
 
 @implementation BoxRESTApiFactory
 
-static const NSString * BOX_API_KEY = @"<YOUR API KEY HERE>";
+//static const NSString * BOX_API_KEY = @"<YOUR API KEY HERE>";
 
 + (NSString *)getAuthTokenUrlString:(NSString *)userName userPassword:(NSString *)userPassword {
 	NSString *password = [BoxModelUtilityFunctions urlEncodeParameter:userPassword];
