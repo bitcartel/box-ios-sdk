@@ -212,7 +212,7 @@
 	}
 
 	if ([_networkResponse expectedContentLength] > 0) {
-		//BOXLog(@"Received data of length: %d expected: %d", [_receivedData length], [_networkResponse expectedContentLength]);
+		//BOXLog(@"Received data of length: %qu expected: %qi", [_receivedData length], [_networkResponse expectedContentLength]);
 		self.expectedContentLength = [_networkResponse expectedContentLength];
 		self.completionRatio = [NSNumber numberWithDouble:(double)_receivedDataLength/(double)self.expectedContentLength];
 		[self requestDidProgressWithRatio:self.completionRatio];
