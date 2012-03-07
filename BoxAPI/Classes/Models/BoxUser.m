@@ -38,7 +38,8 @@
 @synthesize storageQuota = _storageQuota;
 @synthesize storageUsed = _storageUsed;
 
-#define BOX_USER_MODEL_ACCOUNT_PLIST @"/Documents/boxNetSavedAccountInfo.plist"
+// Plist is saved in Documents folder which is exposed by iTunes File Sharing, so use . prefix to hide.
+#define BOX_USER_MODEL_ACCOUNT_PLIST @".boxNetSavedAccountInfo.plist"
 
 #pragma mark Initialization
 
@@ -99,7 +100,9 @@
 }
 
 - (BOOL)loadFromDisk {
-	NSString *fileLocation = [NSHomeDirectory() stringByAppendingPathComponent:BOX_USER_MODEL_ACCOUNT_PLIST];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+	NSString *fileLocation = [documentsDirectory stringByAppendingPathComponent:BOX_USER_MODEL_ACCOUNT_PLIST];
 	NSError *err = nil;
 	NSString *pList = [NSString stringWithContentsOfFile:fileLocation
 												encoding:NSUTF8StringEncoding
@@ -160,7 +163,9 @@
 #pragma mark Helper functions
 
 - (BOOL)saveDictionary:(NSDictionary *)info {
-	NSString *fileLocation = [NSHomeDirectory() stringByAppendingPathComponent: BOX_USER_MODEL_ACCOUNT_PLIST];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+	NSString *fileLocation = [documentsDirectory stringByAppendingPathComponent: BOX_USER_MODEL_ACCOUNT_PLIST];
 	NSString *pList = [info description];
 	NSError * error = nil;
 	BOOL success = [pList writeToFile:fileLocation
