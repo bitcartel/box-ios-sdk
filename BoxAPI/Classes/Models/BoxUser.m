@@ -17,6 +17,11 @@
 
 #import "BoxUser.h"
 
+#import "SimpleKeychain.h"
+
+// Box tokens should be stored in keychain (com.XYZ.APP.BoxUser) and not saved to local folder as in original sample code
+#define kBoxUserKeychainServiceName  [[[NSBundle mainBundle] bundleIdentifier] stringByAppendingPathExtension:@"BoxUser"]
+
 @interface BoxUser()
 
 - (BOOL)saveDictionary:(NSDictionary *)info;
@@ -37,9 +42,6 @@
 @synthesize maxUploadSize = _maxUploadSize;
 @synthesize storageQuota = _storageQuota;
 @synthesize storageUsed = _storageUsed;
-
-// Plist is saved in Documents folder which is exposed by iTunes File Sharing, so use . prefix to hide.
-#define BOX_USER_MODEL_ACCOUNT_PLIST @".boxNetSavedAccountInfo.plist"
 
 #pragma mark Initialization
 
@@ -100,20 +102,17 @@
 }
 
 - (BOOL)loadFromDisk {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-	NSString *fileLocation = [documentsDirectory stringByAppendingPathComponent:BOX_USER_MODEL_ACCOUNT_PLIST];
-	NSError *err = nil;
-	NSString *pList = [NSString stringWithContentsOfFile:fileLocation
-												encoding:NSUTF8StringEncoding
-												   error:&err];
-	if (!err) {
-		NSDictionary * dict = [pList propertyList];
-		if (dict) {
-			[self loadFromDictionary:dict];
-			return YES;
-		}
-	}
+    // Now load from keychain
+    NSData *data = [SimpleKeychain load:kBoxUserKeychainServiceName];
+    if (!data) return NO;
+    NSString *plist = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    if (plist) {
+        NSDictionary * dict = [plist propertyList];
+        if (dict) {
+            [self loadFromDictionary:dict];
+            return YES;
+        }
+    }
 
 	return NO;
 }
@@ -163,22 +162,11 @@
 #pragma mark Helper functions
 
 - (BOOL)saveDictionary:(NSDictionary *)info {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-	NSString *fileLocation = [documentsDirectory stringByAppendingPathComponent: BOX_USER_MODEL_ACCOUNT_PLIST];
-	NSString *pList = [info description];
-	NSError * error = nil;
-	BOOL success = [pList writeToFile:fileLocation
-						   atomically:YES
-							 encoding:NSUTF8StringEncoding
-								error:&error];
-
-	if (error) {
-		NSLog(@"Error: %@ -- %@", 
-			  [error localizedDescription], [error localizedFailureReason]);
-	}
-
-	return success;
+    // Save to keychain, Box sample code prefers to create plist from NSString rather than use NSKeyedArchiver
+    NSString *plist = [info description];
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:plist];
+    [SimpleKeychain save:kBoxUserKeychainServiceName data:data];
+	return YES;
 }
 
 - (void)loadFromDictionary:(NSDictionary *)info {
